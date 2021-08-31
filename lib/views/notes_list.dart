@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:rest_api_notes_app/models/notes.dart';
+import 'package:rest_api_notes_app/services/notes_service.dart';
 import 'package:rest_api_notes_app/views/notes_delete.dart';
 import 'package:rest_api_notes_app/views/notes_modify.dart';
 
-class NotesList extends StatelessWidget {
-  //
-  final notes = [
-    Notes(
-        noteID: '1',
-        noteTitle: 'Note 1',
-        createdDateTime: DateTime.now(),
-        lastEditDateTime: DateTime.now()),
-    Notes(
-        noteID: '2',
-        noteTitle: 'Note 2',
-        createdDateTime: DateTime.now(),
-        lastEditDateTime: DateTime.now()),
-    Notes(
-        noteID: '3',
-        noteTitle: 'Note 3',
-        createdDateTime: DateTime.now(),
-        lastEditDateTime: DateTime.now()),
-  ];
+class NotesList extends StatefulWidget {
+  @override
+  _NotesListState createState() => _NotesListState();
+}
+
+class _NotesListState extends State<NotesList> {
+  NotesService get service => GetIt.I<NotesService>();
+
+  List<Notes> notes = [];
 
   String formatDateTime(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+  }
+
+  @override
+  void initState() {
+    notes = service.getNotesList();
+    super.initState();
   }
 
   @override
@@ -44,7 +42,7 @@ class NotesList extends StatelessWidget {
       body: ListView.separated(
           itemBuilder: (context, index) {
             return Dismissible(
-              key: ValueKey(notes[index].noteID),
+              key: UniqueKey(),
               direction: DismissDirection.startToEnd,
               onDismissed: (direction) {},
               confirmDismiss: (direction) async {

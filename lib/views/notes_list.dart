@@ -14,7 +14,7 @@ class NotesList extends StatefulWidget {
 class _NotesListState extends State<NotesList> {
   NotesService get service => GetIt.I<NotesService>();
 
-  final APIResponse<List<Notes>> _apiResponse;
+  APIResponse<List<Notes>>? _apiResponse;
 
   bool _isLoading = false;
 
@@ -56,57 +56,62 @@ class _NotesListState extends State<NotesList> {
         ),
         body: Builder(
           builder: (context) {
-            if (_isLoading) {
-              return CircularProgressIndicator();
-            }
-            if (_apiResponse.error) {
-              return Center(child: Text(_apiResponse.errorMessage as String));
-            }
-            return ListView.separated(
-                itemBuilder: (context, index) {
-                  return Dismissible(
-                    key: UniqueKey(),
-                    direction: DismissDirection.startToEnd,
-                    onDismissed: (direction) {},
-                    confirmDismiss: (direction) async {
-                      final result = await showDialog(
-                          context: context,
-                          builder: (context) => NotesDelete());
-                      //print(result);
-                      return result;
-                    },
-                    background: Container(
-                      color: Colors.red,
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: Align(
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
-                        alignment: Alignment.centerLeft,
-                      ),
-                    ),
-                    child: ListTile(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => NotesModify(
-                                  noteID: _apiResponse.data![index].noteID),
-                            ));
+            final _apiResp = _apiResponse;
+            if (_apiResp == null) {
+              throw 'the response is null';
+            } else {
+              if (_isLoading) {
+                return CircularProgressIndicator();
+              }
+              if (_apiResp.error) {
+                return Center(child: Text(_apiResp.errorMessage));
+              }
+              return ListView.separated(
+                  itemBuilder: (context, index) {
+                    return Dismissible(
+                      key: UniqueKey(),
+                      direction: DismissDirection.startToEnd,
+                      onDismissed: (direction) {},
+                      confirmDismiss: (direction) async {
+                        final result = await showDialog(
+                            context: context,
+                            builder: (context) => NotesDelete());
+                        return result;
                       },
-                      title: Text(
-                        _apiResponse.data![index].noteTitle,
-                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      background: Container(
+                        color: Colors.red,
+                        padding: EdgeInsets.only(left: 16.0),
+                        child: Align(
+                          child: Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                          alignment: Alignment.centerLeft,
+                        ),
                       ),
-                      subtitle: Text(
-                          'Last edited on ${formatDateTime(_apiResponse.data![index].lastEditDateTime)}'),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) =>
-                    Divider(height: 1, color: Colors.green),
-                itemCount: _apiResponse.data!.length);
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NotesModify(
+                                    noteID: _apiResp.data![index].noteID),
+                              ));
+                        },
+                        title: Text(
+                          _apiResp.data![index].noteTitle,
+                          style:
+                              TextStyle(color: Theme.of(context).primaryColor),
+                        ),
+                        subtitle: Text(
+                            'Last edited on ${formatDateTime(_apiResp.data![index].lastEditDateTime)}'),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      Divider(height: 1, color: Colors.green),
+                  itemCount: _apiResp.data!.length);
+            }
           },
         ));
   }
